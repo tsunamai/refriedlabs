@@ -20,6 +20,7 @@
 	// state field — shared input model type (Track1Inputs.state is string)
 	let selectedState: string = $state('');
 	let baseMode = $state<'pretax' | 'posttax'>('pretax');
+	let mode = $state<'quick' | 'split'>('quick');
 
 	// Active tip percent: from preset buttons or the "Other" numeric input.
 	const tipPercent = $derived(
@@ -180,7 +181,24 @@
 	depending on the state you're in.
 </p>
 
+<div class="mode-switch" role="group" aria-label="Calculator mode">
+	<button
+		type="button"
+		class="mode-btn"
+		class:active={mode === 'quick'}
+		onclick={() => (mode = 'quick')}
+	>Quick tip</button>
+	<button
+		type="button"
+		class="mode-btn"
+		class:active={mode === 'split'}
+		onclick={() => (mode = 'split')}
+	>Split the check</button>
+</div>
+
 <hr class="divider" />
+
+{#if mode === 'quick'}
 
 <form class="tip-form" onsubmit={(e) => e.preventDefault()} novalidate>
 	<!-- 1. Bill amount -->
@@ -352,52 +370,54 @@
 		{/if}
 	</div>
 
-	<!-- 6. Pre-tax / post-tax toggle -->
-	<div class="field base-field">
-		<span class="group-label" id="base-label">Tip base</span>
-		<div
-			class="segmented segmented-two"
-			role="radiogroup"
-			aria-label="Tip base"
-			tabindex="-1"
-			onkeydown={onBaseKeydown}
-		>
-			<button
-				type="button"
-				class="btn btn-toggle"
-				class:selected={baseMode === 'pretax'}
-				role="radio"
-				aria-checked={baseMode === 'pretax'}
-				tabindex={baseMode === 'pretax' ? 0 : -1}
-				onclick={() => (baseMode = 'pretax')}
+	<!-- 6. Pre-tax / post-tax toggle (advanced — collapsed by default) -->
+	<details class="tip-base-details">
+		<summary class="tip-base-summary">Tip base · <span class="tip-base-current">{baseMode === 'pretax' ? 'pre-tax' : 'post-tax'}</span></summary>
+		<div class="field base-field">
+			<div
+				class="segmented segmented-two"
+				role="radiogroup"
+				aria-label="Tip base"
+				tabindex="-1"
+				onkeydown={onBaseKeydown}
 			>
-				Pre-tax subtotal
-			</button>
-			<button
-				type="button"
-				class="btn btn-toggle"
-				class:selected={baseMode === 'posttax'}
-				role="radio"
-				aria-checked={baseMode === 'posttax'}
-				tabindex={baseMode === 'posttax' ? 0 : -1}
-				onclick={() => (baseMode = 'posttax')}
-			>
-				Post-tax total
-			</button>
+				<button
+					type="button"
+					class="btn btn-toggle"
+					class:selected={baseMode === 'pretax'}
+					role="radio"
+					aria-checked={baseMode === 'pretax'}
+					tabindex={baseMode === 'pretax' ? 0 : -1}
+					onclick={() => (baseMode = 'pretax')}
+				>
+					Pre-tax subtotal
+				</button>
+				<button
+					type="button"
+					class="btn btn-toggle"
+					class:selected={baseMode === 'posttax'}
+					role="radio"
+					aria-checked={baseMode === 'posttax'}
+					tabindex={baseMode === 'posttax' ? 0 : -1}
+					onclick={() => (baseMode = 'posttax')}
+				>
+					Post-tax total
+				</button>
+			</div>
+
+			<p class="base-note">{baseNote}</p>
+
+			<details class="base-details">
+				<summary>How much does this change?</summary>
+				<p>
+					It depends on local sales tax. On a $50 meal in a high-tax city (NYC sales tax: 8.875%),
+					tipping 20% post-tax sends $10.89 instead of $10.00. In states with no sales tax,
+					post-tax and pre-tax tipping are identical. Etiquette guides have historically recommended
+					pre-tax because the tip amount stays the same regardless of where you eat.
+				</p>
+			</details>
 		</div>
-
-		<p class="base-note">{baseNote}</p>
-
-		<details class="base-details">
-			<summary>How much does this change?</summary>
-			<p>
-				It depends on local sales tax. On a $50 meal in a high-tax city (NYC sales tax: 8.875%),
-				tipping 20% post-tax sends $10.89 instead of $10.00. In states with no sales tax,
-				post-tax and pre-tax tipping are identical. Etiquette guides have historically recommended
-				pre-tax because the tip amount stays the same regardless of where you eat.
-			</p>
-		</details>
-	</div>
+	</details>
 </form>
 
 <InlineCalculator />
@@ -576,6 +596,13 @@
 		</div>
 	{/if}
 </div>
+
+{:else}
+<div class="split-placeholder">
+	<p class="split-placeholder-headline">Named split by item</p>
+	<p class="split-placeholder-body">Add people, enter what each person ordered, and get everyone's exact share — tip and tax included. Coming in the next update.</p>
+</div>
+{/if}
 
 <div class="signpost-footer" role="note">
 	<p>More tools at <a href="/">refriedlabs</a></p>
@@ -1082,5 +1109,106 @@
 		font-size: 0.8125rem;
 		color: var(--muted);
 		line-height: 1.5;
+	}
+
+	/* Mode switcher */
+	.mode-switch {
+		display: flex;
+		border: 2px solid var(--border);
+		border-radius: var(--radius);
+		padding: 3px;
+		background: var(--surface);
+		margin-top: var(--space-lg);
+		margin-bottom: var(--space-lg);
+	}
+
+	.mode-btn {
+		flex: 1;
+		min-height: 44px;
+		border: none;
+		background: transparent;
+		color: var(--muted);
+		font-family: var(--font);
+		font-size: 0.9375rem;
+		font-weight: 600;
+		cursor: pointer;
+		border-radius: calc(var(--radius) - 3px);
+		transition: background 0.15s, color 0.15s;
+	}
+
+	.mode-btn.active {
+		background: var(--terracotta);
+		color: white;
+	}
+
+	.mode-btn:hover:not(.active) {
+		color: var(--terracotta);
+	}
+
+	.mode-btn:focus-visible {
+		outline: 3px solid var(--terracotta);
+		outline-offset: 2px;
+	}
+
+	/* Tip base collapsible */
+	.tip-base-details {
+		margin-top: var(--space-md);
+	}
+
+	.tip-base-summary {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--muted);
+		cursor: pointer;
+		min-height: 44px;
+		display: flex;
+		align-items: center;
+		gap: 0.25rem;
+		list-style: none;
+	}
+
+	.tip-base-summary::-webkit-details-marker { display: none; }
+
+	.tip-base-summary::before {
+		content: '▸';
+		font-size: 0.75rem;
+		transition: transform 0.15s;
+	}
+
+	.tip-base-details[open] .tip-base-summary::before {
+		transform: rotate(90deg);
+	}
+
+	.tip-base-summary:focus-visible {
+		outline: 3px solid var(--terracotta);
+		outline-offset: 2px;
+		border-radius: var(--radius);
+	}
+
+	.tip-base-current {
+		color: var(--terracotta);
+	}
+
+	/* Split mode placeholder */
+	.split-placeholder {
+		padding: var(--space-lg) var(--space-md);
+		border: 2px dashed var(--border);
+		border-radius: var(--radius);
+		text-align: center;
+	}
+
+	.split-placeholder-headline {
+		font-weight: 700;
+		font-size: 1.125rem;
+		color: var(--dark);
+		margin-bottom: var(--space-sm);
+	}
+
+	.split-placeholder-body {
+		font-size: 0.9375rem;
+		color: var(--muted);
+		max-width: 38ch;
+		margin: 0 auto;
+		line-height: 1.6;
 	}
 </style>
