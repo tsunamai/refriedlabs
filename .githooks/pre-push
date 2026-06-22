@@ -1,0 +1,3 @@
+#!/bin/sh
+# Reject push if the build fails.
+npm run build

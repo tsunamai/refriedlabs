@@ -13,8 +13,27 @@ The tip calculator is the foundation. This track builds out the full picture of 
 
 ### LIVE
 
-**TIP-1: Tip Calculator**
-Bill amount → tip % → party split → state wage context. The $2.13/hr tipped minimum, One Fair Wage states, pre-tax vs. post-tax base. Built. Shipped.
+**TIP-1: Tip Calculator — v1**
+Bill amount → tip % → party split → state wage context. The $2.13/hr tipped minimum, One Fair Wage states, pre-tax vs. post-tax base, state sales tax auto-fill, itemized my-share section. Built. Shipped.
+
+**TIP-1 REVAMP: Mode-First Architecture [IN PROGRESS]**
+
+The calculator was built in stages and the UX accumulated complexity without a coherent user journey. A full revamp is underway, building incrementally. Each phase ships independently.
+
+Architecture decisions made (Jun 2026):
+- Calculation layer: pure TS functions in `src/lib/calculators/` — no Svelte, fully testable
+- Shared types: `src/lib/types/bill.ts` — all interfaces live here, calculators import from here
+- Utilities: `src/lib/utils/` — `format.ts` (money/percent), `keyboard.ts` (roving tabindex)
+- Components: `src/lib/components/` — self-contained Svelte components, props in / events out
+- Route pages: thin — own state, compose components, no business logic
+
+| Phase | Description | Status |
+|---|---|---|
+| 1 | Foundation: extract types, utils, InlineCalculator component — no UI change | ✅ DONE |
+| 2 | Mode switcher (Quick tip / Split the check) + Quick tip UX cleanup | next |
+| 3 | Split the check: named people, item assignment via inline chips, per-person totals | planned |
+| 4 | Surcharge support: SF mandate, credit card fee, living wage line items | planned |
+| 5 | Delivery mode (BILL-4 implementation) | planned |
 
 ---
 

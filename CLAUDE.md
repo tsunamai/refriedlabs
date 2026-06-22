@@ -49,19 +49,32 @@ All routes prerendered (`export const prerender = true` in `+layout.ts`).
 ```
 refriedlabs/
 ├── CLAUDE.md              ← this file
+├── PRODUCT_BACKLOG.md     ← full tool roadmap
 ├── src/
 │   ├── app.html           ← HTML shell
 │   ├── app.css            ← brand tokens (warm chili palette — full brand pass TBD)
 │   ├── routes/
 │   │   ├── +layout.ts     ← prerender = true
 │   │   ├── +layout.svelte ← minimal shell (header + skip link)
-│   │   ├── +page.svelte   ← home: tool index
+│   │   ├── +page.svelte   ← home: tool index + Bean mascot
 │   │   └── tools/
-│   │       └── tip-calculator/+page.svelte
+│   │       └── tip-calculator/+page.svelte  ← thin page; composes lib components
 │   └── lib/
-│       ├── calculators/   ← pure TS calculation functions
-│       └── data/          ← static reference data (states, wage maps, etc.)
-├── static/                ← favicon etc.
+│       ├── calculators/   ← pure TS functions (no Svelte, no side effects)
+│       │   └── tip.ts     ← calculateTip, calculateItemized, calculateEqualSplit
+│       ├── components/    ← reusable Svelte components (props in, events out)
+│       │   └── InlineCalculator.svelte
+│       ├── data/          ← static reference data
+│       │   ├── states.ts  ← STATE_OPTIONS, salesTax(), isOneFairWage()
+│       │   └── tip-one-fair-wage-2026.json
+│       ├── types/
+│       │   └── bill.ts    ← all shared interfaces (TipInputs, LineItem, Person, etc.)
+│       └── utils/
+│           ├── format.ts  ← money(), percent()
+│           └── keyboard.ts ← handleRovingKeydown() for ARIA radiogroups
+├── .githooks/
+│   └── pre-push           ← runs npm run build; rejects push on failure
+├── static/                ← bean.png (mascot), favicon.svg
 ├── package.json
 ├── svelte.config.js
 ├── vite.config.ts
