@@ -4,13 +4,11 @@
 </svelte:head>
 
 <h1>refriedlabs</h1>
-<p class="tagline">Tools built because something annoyed me. Free forever.</p>
 
 <ul class="tool-list">
 	<li class="tool-card">
 		<a href="/tools/tip-calculator" class="tool-link">
 			<span class="tool-name">Tip Calculator</span>
-			<span class="tool-desc">Split the check. See what servers actually earn in your state.</span>
 		</a>
 	</li>
 </ul>
@@ -18,12 +16,6 @@
 <style>
 	h1 {
 		margin-bottom: var(--space-xs);
-	}
-
-	.tagline {
-		color: var(--muted);
-		margin-bottom: var(--space-xl);
-		font-size: 1.0625rem;
 	}
 
 	.tool-list {

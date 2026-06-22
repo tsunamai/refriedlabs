@@ -684,7 +684,7 @@
 </div>
 
 <div class="signpost-footer" role="note">
-	<p>More tools at <a href="/">refriedlabs</a> — built because something annoyed me.</p>
+	<p>More tools at <a href="/">refriedlabs</a></p>
 </div>
 
 <style>
