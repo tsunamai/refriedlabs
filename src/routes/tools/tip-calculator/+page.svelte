@@ -1,6 +1,10 @@
 <script lang="ts">
-	import { calculateTip, calculateItemized, type LineItem } from '$lib/calculators/tip';
+	import { calculateTip, calculateItemized } from '$lib/calculators/tip';
+	import type { LineItem } from '$lib/types/bill';
 	import { STATE_OPTIONS, stateName, isOneFairWage, salesTax } from '$lib/data/states';
+	import { money } from '$lib/utils/format';
+	import { handleRovingKeydown } from '$lib/utils/keyboard';
+	import InlineCalculator from '$lib/components/InlineCalculator.svelte';
 
 	const DOL_FACT_SHEET = 'https://www.dol.gov/agencies/whd/fact-sheets/15-tipped-employees-flsa';
 
@@ -29,11 +33,6 @@
 	);
 
 	const hasBill = $derived(bill > 0);
-
-	// Currency formatter — no rounding surprises, always 2 decimals.
-	function money(n: number): string {
-		return `$${n.toFixed(2)}`;
-	}
 
 	// Bill-amount label reflects what the entered amount represents (toggle copy).
 	const billLabel = $derived(
@@ -71,33 +70,15 @@
 		}
 	}
 
-	// Roving arrow-key navigation within the tip radiogroup (WCAG radio pattern).
 	function onTipKeydown(e: KeyboardEvent) {
-		const count = PRESETS.length + 1; // presets + "Other"
-		let next = tipSelectedIndex;
-		if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
-			next = (tipSelectedIndex + 1) % count;
-		} else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
-			next = (tipSelectedIndex - 1 + count) % count;
-		} else {
-			return;
-		}
-		e.preventDefault();
-		applyTipIndex(next);
-		const group = e.currentTarget as HTMLElement;
-		const buttons = group.querySelectorAll<HTMLElement>('[role="radio"]');
-		buttons[next]?.focus();
+		handleRovingKeydown(e, PRESETS.length + 1, tipSelectedIndex, (next) => applyTipIndex(next));
 	}
 
-	// Roving arrow-key navigation within the pre-tax / post-tax radiogroup.
 	function onBaseKeydown(e: KeyboardEvent) {
-		if (!['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp'].includes(e.key)) return;
-		e.preventDefault();
-		baseMode = baseMode === 'pretax' ? 'posttax' : 'pretax';
-		const group = e.currentTarget as HTMLElement;
-		const buttons = group.querySelectorAll<HTMLElement>('[role="radio"]');
-		const target = baseMode === 'pretax' ? buttons[0] : buttons[1];
-		target?.focus();
+		const current = baseMode === 'pretax' ? 0 : 1;
+		handleRovingKeydown(e, 2, current, (next) => {
+			baseMode = next === 0 ? 'pretax' : 'posttax';
+		});
 	}
 
 	function decreaseParty() {
@@ -106,83 +87,6 @@
 
 	function increaseParty() {
 		if (partySize < MAX_PARTY) partySize += 1;
-	}
-
-	// Inline calculator
-	let showCalc = $state(false);
-	let calcDisplay = $state('0');
-	let calcPrev = $state<number | null>(null);
-	let calcOp = $state<string | null>(null);
-	let calcFresh = $state(false);
-
-	function calcFormatResult(n: number): string {
-		if (!Number.isFinite(n)) return 'Error';
-		return parseFloat(n.toPrecision(10)).toString();
-	}
-
-	function calcDigit(d: string) {
-		if (calcFresh || calcDisplay === 'Error') {
-			calcDisplay = d;
-			calcFresh = false;
-		} else if (calcDisplay === '0' && d !== '0') {
-			calcDisplay = d;
-		} else if (calcDisplay.length < 12) {
-			calcDisplay += d;
-		}
-	}
-
-	function calcDot() {
-		if (calcFresh || calcDisplay === 'Error') { calcDisplay = '0.'; calcFresh = false; return; }
-		if (!calcDisplay.includes('.')) calcDisplay += '.';
-	}
-
-	function calcCompute(a: number, b: number, op: string): number {
-		if (op === '+') return a + b;
-		if (op === '-') return a - b;
-		if (op === '×') return a * b;
-		if (op === '÷') return b !== 0 ? a / b : NaN;
-		return b;
-	}
-
-	function calcOperator(op: string) {
-		if (calcDisplay === 'Error') return;
-		const cur = parseFloat(calcDisplay);
-		if (calcPrev !== null && !calcFresh) {
-			const res = calcCompute(calcPrev, cur, calcOp!);
-			calcDisplay = calcFormatResult(res);
-			calcPrev = Number.isFinite(res) ? res : null;
-		} else {
-			calcPrev = cur;
-		}
-		if (calcPrev !== null) calcOp = op;
-		calcFresh = true;
-	}
-
-	function calcEquals() {
-		if (calcPrev === null || calcOp === null) return;
-		const res = calcCompute(calcPrev, parseFloat(calcDisplay), calcOp);
-		calcDisplay = calcFormatResult(res);
-		calcPrev = null;
-		calcOp = null;
-		calcFresh = true;
-	}
-
-	function calcClear() {
-		calcDisplay = '0';
-		calcPrev = null;
-		calcOp = null;
-		calcFresh = false;
-	}
-
-	function calcNegate() {
-		if (calcDisplay === 'Error' || calcDisplay === '0') return;
-		calcDisplay = calcFormatResult(-parseFloat(calcDisplay));
-	}
-
-	function calcPercent() {
-		if (calcDisplay === 'Error') return;
-		calcDisplay = calcFormatResult(parseFloat(calcDisplay) / 100);
-		calcFresh = true;
 	}
 
 	// Itemized "my share" section
@@ -251,13 +155,10 @@
 	}
 
 	function onItemizedBaseKeydown(e: KeyboardEvent) {
-		if (!['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp'].includes(e.key)) return;
-		e.preventDefault();
-		itemizedTipBase = itemizedTipBase === 'pretax' ? 'posttax' : 'pretax';
-		const group = e.currentTarget as HTMLElement;
-		const buttons = group.querySelectorAll<HTMLElement>('[role="radio"]');
-		const target = itemizedTipBase === 'pretax' ? buttons[0] : buttons[1];
-		target?.focus();
+		const current = itemizedTipBase === 'pretax' ? 0 : 1;
+		handleRovingKeydown(e, 2, current, (next) => {
+			itemizedTipBase = next === 0 ? 'pretax' : 'posttax';
+		});
 	}
 </script>
 
@@ -499,53 +400,13 @@
 	</div>
 </form>
 
-<!-- Optional inline calculator -->
-<div class="calc-wrapper">
-	<button
-		type="button"
-		class="calc-toggle"
-		onclick={() => showCalc = !showCalc}
-		aria-expanded={showCalc}
-		aria-controls="inline-calc"
-	>
-		{showCalc ? 'Hide calculator' : 'Calculator'}
-	</button>
-
-	{#if showCalc}
-		<div class="calc" id="inline-calc" role="region" aria-label="Calculator">
-			<div class="calc-display" aria-live="polite" aria-atomic="true">
-				<span class="calc-display-value">{calcDisplay}</span>
-			</div>
-			<div class="calc-grid" role="group" aria-label="Calculator buttons">
-				<button type="button" class="calc-btn calc-fn" onclick={calcClear}>AC</button>
-				<button type="button" class="calc-btn calc-fn" onclick={calcNegate} aria-label="Toggle sign">+/−</button>
-				<button type="button" class="calc-btn calc-fn" onclick={calcPercent} aria-label="Percent">%</button>
-				<button type="button" class="calc-btn calc-op" onclick={() => calcOperator('÷')} aria-label="Divide">÷</button>
-				<button type="button" class="calc-btn" onclick={() => calcDigit('7')}>7</button>
-				<button type="button" class="calc-btn" onclick={() => calcDigit('8')}>8</button>
-				<button type="button" class="calc-btn" onclick={() => calcDigit('9')}>9</button>
-				<button type="button" class="calc-btn calc-op" onclick={() => calcOperator('×')} aria-label="Multiply">×</button>
-				<button type="button" class="calc-btn" onclick={() => calcDigit('4')}>4</button>
-				<button type="button" class="calc-btn" onclick={() => calcDigit('5')}>5</button>
-				<button type="button" class="calc-btn" onclick={() => calcDigit('6')}>6</button>
-				<button type="button" class="calc-btn calc-op" onclick={() => calcOperator('-')} aria-label="Subtract">−</button>
-				<button type="button" class="calc-btn" onclick={() => calcDigit('1')}>1</button>
-				<button type="button" class="calc-btn" onclick={() => calcDigit('2')}>2</button>
-				<button type="button" class="calc-btn" onclick={() => calcDigit('3')}>3</button>
-				<button type="button" class="calc-btn calc-op" onclick={() => calcOperator('+')} aria-label="Add">+</button>
-				<button type="button" class="calc-btn calc-zero" onclick={() => calcDigit('0')}>0</button>
-				<button type="button" class="calc-btn" onclick={calcDot} aria-label="Decimal point">.</button>
-				<button type="button" class="calc-btn calc-op" onclick={calcEquals} aria-label="Equals">=</button>
-			</div>
-		</div>
-	{/if}
-</div>
+<InlineCalculator />
 
 <!-- My share by items -->
 <div class="itemized-wrapper">
 	<button
 		type="button"
-		class="calc-toggle"
+		class="section-toggle"
 		onclick={() => (showItemized = !showItemized)}
 		aria-expanded={showItemized}
 		aria-controls="itemized-section"
@@ -1032,12 +893,8 @@
 		color: var(--muted);
 	}
 
-	/* Inline calculator */
-	.calc-wrapper {
-		margin-top: var(--space-lg);
-	}
-
-	.calc-toggle {
+	/* Itemized "my share" section */
+	.section-toggle {
 		background: none;
 		border: none;
 		cursor: pointer;
@@ -1052,98 +909,14 @@
 		align-items: center;
 	}
 
-	.calc-toggle:hover {
-		color: var(--terracotta);
-	}
+	.section-toggle:hover { color: var(--terracotta); }
 
-	.calc-toggle:focus-visible {
+	.section-toggle:focus-visible {
 		outline: 3px solid var(--terracotta);
 		outline-offset: 2px;
 		border-radius: var(--radius);
 	}
 
-	.calc {
-		margin-top: var(--space-md);
-		border-radius: var(--radius);
-		overflow: hidden;
-		border: 1px solid var(--border);
-		max-width: 340px;
-	}
-
-	.calc-display {
-		background: var(--dark);
-		padding: var(--space-md);
-		text-align: right;
-		min-height: 72px;
-		display: flex;
-		align-items: flex-end;
-		justify-content: flex-end;
-	}
-
-	.calc-display-value {
-		font-size: 2.25rem;
-		font-weight: 300;
-		color: var(--cream);
-		letter-spacing: -0.02em;
-		overflow: hidden;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-		max-width: 100%;
-	}
-
-	.calc-grid {
-		display: grid;
-		grid-template-columns: repeat(4, 1fr);
-		gap: 1px;
-		background: var(--border);
-	}
-
-	.calc-btn {
-		background: var(--surface);
-		color: var(--dark);
-		border: none;
-		font-family: var(--font);
-		font-size: 1.25rem;
-		font-weight: 400;
-		min-height: 64px;
-		cursor: pointer;
-		transition: background 0.1s;
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		padding: 0;
-	}
-
-	.calc-btn:hover {
-		filter: brightness(0.93);
-	}
-
-	.calc-btn:active {
-		filter: brightness(0.82);
-	}
-
-	.calc-btn:focus-visible {
-		outline: 3px solid var(--terracotta);
-		outline-offset: -3px;
-	}
-
-	.calc-fn {
-		background: var(--border);
-	}
-
-	.calc-op {
-		background: var(--terracotta);
-		color: white;
-		font-weight: 600;
-	}
-
-	.calc-zero {
-		grid-column: span 2;
-		justify-content: flex-start;
-		padding-left: 1.5rem;
-	}
-
-	/* Itemized "my share" section */
 	.itemized-wrapper {
 		margin-top: var(--space-md);
 	}
