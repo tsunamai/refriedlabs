@@ -3,7 +3,6 @@
 	<meta name="description" content="Tools built for a use case of one." />
 </svelte:head>
 
-<h1>refriedlabs</h1>
 <p class="tagline">Tools built for a use case of one.</p>
 
 <div class="mascot-wrap">
@@ -19,10 +18,6 @@
 </ul>
 
 <style>
-	h1 {
-		margin-bottom: var(--space-xs);
-	}
-
 	.tagline {
 		color: var(--muted);
 		margin-bottom: var(--space-xl);
