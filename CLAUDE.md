@@ -37,6 +37,13 @@ All routes prerendered (`export const prerender = true` in `+layout.ts`).
 
 ---
 
+## Where to Find Things
+
+- **Product backlog:** `PRODUCT_BACKLOG.md` — full tool roadmap with ship order across Tipping & Bills, FastFuel, and Nutrition Bridge tracks
+- **Brand:** refriedlabs.com (GoDaddy, 3-year registration, Jun 2026)
+
+---
+
 ## File Structure
 
 ```
