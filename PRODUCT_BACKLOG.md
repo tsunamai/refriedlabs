@@ -210,6 +210,44 @@ Accuracy disclaimer: "Estimates only. Nutrition data sourced from chain disclosu
 
 ---
 
+## PARKING & LOCAL RULES TRACK
+
+The premise: local government rules vary by city in ways that cost real money when you don't know them. Parking is the anchor — the statewide default doesn't always apply, and nobody tells you that until you get a ticket.
+
+**Origin:** Carmel-by-the-Sea enforces yellow zones 7 days a week. Most of California allows yellow zone parking on Sundays. Got a ticket. Built the thing.
+
+---
+
+**PARK-1: Color Zone Lookup — California [P2]**
+
+"Can I park in the yellow zone here on Sunday?"
+
+**The problem:** California has a statewide default for curb color rules (yellow = commercial loading, Mon–Sat 6am–6pm only; Sunday generally free). But cities can and do override this. Most people assume the state rule applies everywhere. It doesn't.
+
+**Inputs:** city, curb color, day of week, time of day.
+
+**Output:** yes / no / check signage — plus the actual rule for that city and a link to the source municipal code or parking page.
+
+**Scope:** California cities first. Data sourced from municipal parking codes (public). Start with major cities + known exception cities (Carmel, Beverly Hills, Santa Monica, SF, etc.).
+
+**Curb colors covered:** Yellow (commercial loading), Red (no stopping), White (passenger loading), Green (time-limited), Blue (accessible).
+
+**Format:** stateless lookup, no accounts. City selector or search → color → day/time → answer.
+
+---
+
+**PARK-2: Local Rules Expansion [P3 — broader "rules that vary by city"]**
+
+Expand beyond color zones to other local rules that blindside people:
+- Overnight parking bans (many cities prohibit parking 2–6am)
+- Street sweeping schedules by neighborhood
+- Permit zone rules (when do you actually need a permit?)
+- Tow-away hours
+
+**Later:** expand beyond California to other states with significant local variation (NYC, Chicago, etc.).
+
+---
+
 ## BACKLOG INTAKE (rough ideas, not groomed)
 
 - **Split the tax** — given your state + income, show what percentage of each dollar worked goes to which tax. Companion to FastFuel's "what keeps you full for the least money."
