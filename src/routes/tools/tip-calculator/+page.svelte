@@ -643,7 +643,9 @@
 						/>
 						<span class="input-suffix" aria-hidden="true">%</span>
 					</div>
-					<p class="field-hint">Leave blank to use the same rate as food.</p>
+					<p class="field-hint">
+						Leave blank to use the same rate as food. Some states (e.g. Tennessee) apply a separate liquor-by-the-drink tax that appears as its own line on the bill — check your receipt.
+					</p>
 				</div>
 			{/if}
 
