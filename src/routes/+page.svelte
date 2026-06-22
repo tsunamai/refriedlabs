@@ -6,6 +6,10 @@
 <h1>refriedlabs</h1>
 <p class="tagline">Tools built for a use case of one.</p>
 
+<div class="mascot-wrap">
+	<img src="/bean.png" alt="Bean, the refriedlabs mascot" class="mascot" />
+</div>
+
 <ul class="tool-list">
 	<li class="tool-card">
 		<a href="/tools/tip-calculator" class="tool-link">
@@ -23,6 +27,19 @@
 		color: var(--muted);
 		margin-bottom: var(--space-xl);
 		font-size: 1.0625rem;
+	}
+
+	.mascot-wrap {
+		display: flex;
+		justify-content: center;
+		margin-bottom: var(--space-xl);
+	}
+
+	.mascot {
+		width: 160px;
+		height: 160px;
+		object-fit: contain;
+		mix-blend-mode: multiply;
 	}
 
 	.tool-list {
