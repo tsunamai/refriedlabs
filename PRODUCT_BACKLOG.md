@@ -115,6 +115,22 @@ Tone: factual, not judgmental. "25% on a post-tax $48 bill is $12. The norm for 
 
 ---
 
+**TIP-4: City-Level Sales Tax Lookup [P3 — CA first, expand later]**
+
+Auto-fill the sales tax rate by city, not just state. Currently TIP-1 fills the state base rate (e.g. 7.25% for CA); this goes one level deeper.
+
+**V1 scope — California only:**
+- Source: CDTFA quarterly rate table (official, public)
+- Data: ~500+ CA cities/counties as JSON in `src/lib/data/sales-tax-ca.json`
+- UX: city search field appears when CA is selected; type city name → auto-fill exact rate
+- Fallback: manual override always available
+
+**Later:** expand to other states with significant local tax variation (WA, TX, IL, NY).
+
+**Depends on:** TIP-1 (already live). No other dependencies.
+
+---
+
 ## FASTFUEL TRACK
 
 **FAST-1: FastFuel Web Interface [P2 — port Python CLI to SvelteKit]**

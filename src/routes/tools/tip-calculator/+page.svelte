@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { calculateTip, calculateItemized, type LineItem } from '$lib/calculators/tip';
-	import { STATE_OPTIONS, stateName, isOneFairWage } from '$lib/data/states';
+	import { STATE_OPTIONS, stateName, isOneFairWage, salesTax } from '$lib/data/states';
 
 	const DOL_FACT_SHEET = 'https://www.dol.gov/agencies/whd/fact-sheets/15-tipped-employees-flsa';
 
@@ -203,6 +203,32 @@
 		calculateItemized({ items: lineItems, taxRate, alcoholTaxRate, tipPercent, tipBase: itemizedTipBase })
 	);
 	const itemizedHasInput = $derived(lineItems.some((item) => item.amount > 0));
+
+	// Auto-fill sales tax from state selection; user can override.
+	$effect(() => {
+		if (selectedState) {
+			const rate = salesTax(selectedState);
+			taxRateStr = rate > 0 ? rate.toString() : '';
+		} else {
+			taxRateStr = '';
+		}
+	});
+
+	const taxHint = $derived(
+		!stateChosen
+			? 'Tax rates vary by city and county.'
+			: salesTax(selectedState) === 0
+				? `No state sales tax in ${stateFull}.`
+				: selectedState === 'CA'
+					? 'California base rate. Your city is likely higher.'
+					: `${stateFull} base rate. Local taxes may apply.`
+	);
+
+	const taxLookupUrl = $derived(
+		selectedState === 'CA'
+			? 'https://www.cdtfa.ca.gov/taxes-and-fees/rates.aspx'
+			: null
+	);
 
 	function addItem() {
 		lineItems = [...lineItems, { id: crypto.randomUUID(), label: '', amount: 0, isAlcohol: false }];
@@ -591,7 +617,12 @@
 					/>
 					<span class="input-suffix" aria-hidden="true">%</span>
 				</div>
-				<p class="field-hint">Tax rates vary by city and county. Check your receipt or look up your local rate.</p>
+				<p class="field-hint">
+					{taxHint}
+					{#if taxLookupUrl}
+						<a href={taxLookupUrl} target="_blank" rel="noopener noreferrer">Look up your city →</a>
+					{/if}
+				</p>
 			</div>
 
 			{#if hasAlcohol}

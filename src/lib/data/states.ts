@@ -83,3 +83,25 @@ export function stateName(code: string): string {
 export function isOneFairWage(code: string): boolean {
 	return ONE_FAIR_WAGE[code] === true;
 }
+
+// State-level base sales tax rates (%). 0 = no state sales tax.
+// Source: Tax Foundation / state revenue depts. Verify annually.
+// Local taxes are NOT included — restaurant bills often exceed these rates.
+export const STATE_SALES_TAX: Record<string, number> = {
+	AL: 4.0,   AK: 0.0,   AZ: 5.6,   AR: 6.5,   CA: 7.25,
+	CO: 2.9,   CT: 6.35,  DE: 0.0,   DC: 6.0,   FL: 6.0,
+	GA: 4.0,   HI: 4.0,   ID: 6.0,   IL: 6.25,  IN: 7.0,
+	IA: 6.0,   KS: 6.5,   KY: 6.0,   LA: 4.45,  ME: 5.5,
+	MD: 6.0,   MA: 6.25,  MI: 6.0,   MN: 6.875, MS: 7.0,
+	MO: 4.225, MT: 0.0,   NE: 5.5,   NV: 6.85,  NH: 0.0,
+	NJ: 6.625, NM: 5.0,   NY: 4.0,   NC: 4.75,  ND: 5.0,
+	OH: 5.75,  OK: 4.5,   OR: 0.0,   PA: 6.0,   RI: 7.0,
+	SC: 6.0,   SD: 4.5,   TN: 7.0,   TX: 6.25,  UT: 4.85,
+	VT: 6.0,   VA: 5.3,   WA: 6.5,   WV: 6.0,   WI: 5.0,
+	WY: 4.0
+};
+
+// Returns the state base sales tax rate as a percentage (e.g. 7.25 for CA).
+export function salesTax(code: string): number {
+	return STATE_SALES_TAX[code] ?? 0;
+}
