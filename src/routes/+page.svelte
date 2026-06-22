@@ -1,9 +1,10 @@
 <svelte:head>
 	<title>refriedlabs — personal tools, no paywall</title>
-	<meta name="description" content="Personal tools built out of frustration. No account. No subscription. Just the thing you needed." />
+	<meta name="description" content="Tools built for a use case of one. No paywall. No account." />
 </svelte:head>
 
 <h1>refriedlabs</h1>
+<p class="tagline">Tools built for a use case of one.</p>
 
 <ul class="tool-list">
 	<li class="tool-card">
@@ -16,6 +17,12 @@
 <style>
 	h1 {
 		margin-bottom: var(--space-xs);
+	}
+
+	.tagline {
+		color: var(--muted);
+		margin-bottom: var(--space-xl);
+		font-size: 1.0625rem;
 	}
 
 	.tool-list {
