@@ -131,6 +131,40 @@ Auto-fill the sales tax rate by city, not just state. Currently TIP-1 fills the 
 
 ---
 
+**BILL-3: Restaurant Surcharge Decoder [P2 — content + optional calculator]**
+
+"What is this 4% on my bill?"
+
+Cities increasingly allow or mandate surcharges that restaurants pass to diners. Most people have no idea what these mean — or that they're generally not tips.
+
+**Covers:**
+- SF Healthy San Francisco surcharge (~2–5%): employer health care mandate passed to the customer
+- SF Employer Mandate / Living Wage surcharge
+- Credit card surcharge (3–4%): legal in most states since 2013, surging in adoption
+- "Living wage" / "kitchen equity" / "family sustaining wage" — voluntary charge some restaurants add for back-of-house staff
+
+**Key point:** these fees generally do NOT go to the server. Tipping on top of a surcharge is still appropriate.
+
+**Format:** content-only page first (P2, fast) — explanation by surcharge type, what it is, where it goes. Optional calculator later (P3) — enter bill + surcharge %, see the breakdown.
+
+---
+
+**BILL-4: Delivery App Fee Breakdown [P2 — calculator]**
+
+"So what am I actually paying for on this DoorDash order?"
+
+A $30 restaurant order can become $55 after fees. Almost none of the extra goes to the driver.
+
+**Inputs:** food subtotal, delivery fee, service fee, small order fee (if any), DashPass credit (optional), tip, taxes.
+
+**Outputs:** total cost, estimated driver take (base pay + tip), estimated platform take, and the tip as a % of food cost vs. % of total bill.
+
+**Supports:** DoorDash, Uber Eats, Grubhub — fee structures differ; user selects platform.
+
+**Honest about limits:** platform pay models are not fully disclosed. Estimates are based on reported driver data and platform help docs.
+
+---
+
 ## FASTFUEL TRACK
 
 **FAST-1: FastFuel Web Interface [P2 — port Python CLI to SvelteKit]**
