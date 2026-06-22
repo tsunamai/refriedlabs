@@ -1,6 +1,6 @@
 <svelte:head>
 	<title>refriedlabs — personal tools, no paywall</title>
-	<meta name="description" content="Tools built for a use case of one. No paywall. No account." />
+	<meta name="description" content="Tools built for a use case of one." />
 </svelte:head>
 
 <h1>refriedlabs</h1>
