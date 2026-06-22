@@ -248,10 +248,21 @@ Expand beyond color zones to other local rules that blindside people:
 
 ---
 
+**PARK-3: Parking Meter Math [P2 — pure calculator]**
+
+Given an hourly garage rate and a ticket fine, at what point does it become rational to risk the ticket?
+
+**Inputs:** hourly rate, max daily rate (if any), estimated parking duration, ticket fine for that zone.
+
+**Output:** the break-even hour — "after X hours, the garage is cheaper than risking a ticket." Plus the expected value math if you want to get into it (probability of getting ticketed × fine vs. guaranteed garage cost).
+
+Petty. Useful. Very refriedlabs.
+
+---
+
 ## BACKLOG INTAKE (rough ideas, not groomed)
 
 - **Split the tax** — given your state + income, show what percentage of each dollar worked goes to which tax. Companion to FastFuel's "what keeps you full for the least money."
-- **Parking meter math** — given an hourly garage rate vs. a ticket fine, at what time does it become rational to risk it? Petty. Useful.
 - **Resort fee decoder** — given a hotel's nightly rate + resort fee, show the actual nightly cost and what "free" amenities you'd have to use to break even.
 - **Subscription creep calculator** — list your subscriptions, see the annual total, see what you'd need to cancel to recoup a specific amount.
 
