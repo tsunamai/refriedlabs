@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { calculateTip, calculateItemized } from '$lib/calculators/tip';
-	import type { LineItem } from '$lib/types/bill';
+	import { calculatePersonSplit } from '$lib/calculators/split';
+	import type { LineItem, Person, Assignment } from '$lib/types/bill';
 	import { STATE_OPTIONS, stateName, isOneFairWage, salesTax } from '$lib/data/states';
 	import { money } from '$lib/utils/format';
 	import { handleRovingKeydown } from '$lib/utils/keyboard';
@@ -159,6 +160,145 @@
 		const current = itemizedTipBase === 'pretax' ? 0 : 1;
 		handleRovingKeydown(e, 2, current, (next) => {
 			itemizedTipBase = next === 0 ? 'pretax' : 'posttax';
+		});
+	}
+
+	// --- Split mode ---
+	let splitPeople: Person[] = $state([]);
+	let newPersonName = $state('');
+	let splitItems: LineItem[] = $state([
+		{ id: crypto.randomUUID(), label: '', amount: 0, isAlcohol: false }
+	]);
+	let splitAssignments: Assignment[] = $state([]);
+	let splitTipMode = $state<'preset' | 'other'>('preset');
+	let splitPresetPercent = $state(18);
+	let splitOtherPercent = $state('');
+	let splitSelectedState = $state('');
+	let splitTaxRateStr = $state('');
+	let splitAlcoholTaxRateStr = $state('');
+
+	const splitTipPercent = $derived(
+		splitTipMode === 'other'
+			? Math.min(Math.max(parseFloat(splitOtherPercent) || 0, 0), 100)
+			: splitPresetPercent
+	);
+	const splitTipSelectedIndex = $derived(
+		splitTipMode === 'other' ? PRESETS.length : PRESETS.indexOf(splitPresetPercent)
+	);
+	const splitTaxRate = $derived(Math.min(Math.max(parseFloat(splitTaxRateStr) || 0, 0), 30));
+	const splitAlcoholTaxRate = $derived(
+		splitAlcoholTaxRateStr
+			? Math.min(Math.max(parseFloat(splitAlcoholTaxRateStr) || 0, 0), 30)
+			: splitTaxRate
+	);
+	const splitHasAlcohol = $derived(splitItems.some((item) => item.isAlcohol));
+	const splitResults = $derived(
+		calculatePersonSplit(
+			splitItems, splitPeople, splitAssignments,
+			splitTaxRate, splitAlcoholTaxRate, splitTipPercent, 'pretax'
+		)
+	);
+	const splitHasResults = $derived(splitPeople.length > 0 && splitResults.some((r) => r.total > 0));
+	const splitGrandTotal = $derived(splitResults.reduce((s, r) => s + r.total, 0));
+	const splitTaxHint = $derived(
+		!splitSelectedState
+			? 'Tax rates vary by city and county.'
+			: salesTax(splitSelectedState) === 0
+				? `No state sales tax in ${stateName(splitSelectedState)}.`
+				: splitSelectedState === 'CA'
+					? 'California base rate. Your city is likely higher.'
+					: `${stateName(splitSelectedState)} base rate. Local taxes may apply.`
+	);
+	const splitTaxLookupUrl = $derived(
+		splitSelectedState === 'CA' ? 'https://www.cdtfa.ca.gov/taxes-and-fees/rates.aspx' : null
+	);
+
+	$effect(() => {
+		if (splitSelectedState) {
+			const rate = salesTax(splitSelectedState);
+			splitTaxRateStr = rate > 0 ? rate.toString() : '';
+		} else {
+			splitTaxRateStr = '';
+		}
+	});
+
+	function addPerson() {
+		const name = newPersonName.trim();
+		if (!name) return;
+		splitPeople = [...splitPeople, { id: crypto.randomUUID(), name }];
+		newPersonName = '';
+	}
+
+	function removePerson(id: string) {
+		splitPeople = splitPeople.filter((p) => p.id !== id);
+		splitAssignments = splitAssignments.map((a) => ({
+			...a,
+			personIds: a.personIds.filter((pid) => pid !== id)
+		}));
+	}
+
+	function addSplitItem() {
+		splitItems = [...splitItems, { id: crypto.randomUUID(), label: '', amount: 0, isAlcohol: false }];
+	}
+
+	function removeSplitItem(id: string) {
+		if (splitItems.length <= 1) return;
+		splitItems = splitItems.filter((item) => item.id !== id);
+		splitAssignments = splitAssignments.filter((a) => a.itemId !== id);
+	}
+
+	function updateSplitItemAmount(id: string, value: string) {
+		const amt = Math.max(parseFloat(value) || 0, 0);
+		const item = splitItems.find((it) => it.id === id);
+		if (item) item.amount = amt;
+	}
+
+	function toggleSplitAlcohol(id: string) {
+		const item = splitItems.find((it) => it.id === id);
+		if (item) item.isAlcohol = !item.isAlcohol;
+	}
+
+	function isPersonAssigned(itemId: string, personId: string): boolean {
+		const assignment = splitAssignments.find((a) => a.itemId === itemId);
+		if (!assignment || assignment.personIds.length === 0) return true;
+		return assignment.personIds.includes(personId);
+	}
+
+	function setAssignment(itemId: string, personIds: string[]) {
+		const exists = splitAssignments.some((a) => a.itemId === itemId);
+		if (exists) {
+			splitAssignments = splitAssignments.map((a) =>
+				a.itemId === itemId ? { itemId, personIds } : a
+			);
+		} else {
+			splitAssignments = [...splitAssignments, { itemId, personIds }];
+		}
+	}
+
+	function toggleAssignment(itemId: string, personId: string) {
+		const assignment = splitAssignments.find((a) => a.itemId === itemId);
+		const assignedIds = assignment?.personIds ?? [];
+
+		if (assignedIds.length === 0) {
+			// Everyone currently shares — de-select this person, make rest explicit
+			const others = splitPeople.filter((p) => p.id !== personId).map((p) => p.id);
+			if (others.length === 0) return;
+			setAssignment(itemId, others);
+		} else if (assignedIds.includes(personId)) {
+			const remaining = assignedIds.filter((id) => id !== personId);
+			if (remaining.length === 0) return;
+			setAssignment(itemId, remaining);
+		} else {
+			const updated = [...assignedIds, personId];
+			// If everyone is now selected, reset to empty (= everyone implicitly)
+			setAssignment(itemId, updated.length === splitPeople.length ? [] : updated);
+		}
+	}
+
+	function onSplitTipKeydown(e: KeyboardEvent) {
+		handleRovingKeydown(e, PRESETS.length + 1, splitTipSelectedIndex, (next) => {
+			if (next < PRESETS.length) { splitTipMode = 'preset'; splitPresetPercent = PRESETS[next]; }
+			else splitTipMode = 'other';
 		});
 	}
 </script>
@@ -598,10 +738,217 @@
 </div>
 
 {:else}
-<div class="split-placeholder">
-	<p class="split-placeholder-headline">Named split by item</p>
-	<p class="split-placeholder-body">Add people, enter what each person ordered, and get everyone's exact share — tip and tax included. Coming in the next update.</p>
-</div>
+<!-- Split the check mode -->
+<section class="split-mode">
+
+	<!-- 1. Who's splitting? -->
+	<div class="split-section">
+		<span class="group-label">Who's splitting?</span>
+		<div class="add-person-row">
+			<input
+				type="text"
+				class="person-name-input"
+				placeholder="First name..."
+				bind:value={newPersonName}
+				maxlength="20"
+				onkeydown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addPerson(); } }}
+				aria-label="Person's name"
+			/>
+			<button
+				type="button"
+				class="add-person-btn"
+				onclick={addPerson}
+				disabled={!newPersonName.trim()}
+			>+ Add</button>
+		</div>
+		{#if splitPeople.length > 0}
+			<div class="people-chips" role="list" aria-label="People splitting the check">
+				{#each splitPeople as person (person.id)}
+					<span class="person-chip" role="listitem">
+						{person.name}
+						<button
+							type="button"
+							class="chip-remove"
+							onclick={() => removePerson(person.id)}
+							aria-label={`Remove ${person.name}`}
+						>×</button>
+					</span>
+				{/each}
+			</div>
+		{/if}
+	</div>
+
+	<!-- 2. Items + who had what -->
+	<div class="split-section">
+		<span class="group-label">Items</span>
+		<ul class="item-list" aria-label="Items to split">
+			{#each splitItems as item, i (item.id)}
+				<li class="split-item-row">
+					<div class="item-row">
+						<input
+							type="text"
+							class="item-label-input"
+							placeholder="Item (optional)"
+							bind:value={item.label}
+							aria-label={`Item ${i + 1} name`}
+						/>
+						<div class="input-prefix-wrap item-amount-wrap">
+							<span class="input-prefix" aria-hidden="true">$</span>
+							<input
+								type="number"
+								inputmode="decimal"
+								min="0"
+								step="0.01"
+								placeholder="0.00"
+								value={item.amount === 0 ? '' : item.amount}
+								aria-label={item.label ? `${item.label} amount` : `Item ${i + 1} amount`}
+								oninput={(e) => updateSplitItemAmount(item.id, (e.currentTarget as HTMLInputElement).value)}
+							/>
+						</div>
+						<button
+							type="button"
+							class="alcohol-btn"
+							class:active={item.isAlcohol}
+							role="switch"
+							aria-checked={item.isAlcohol}
+							aria-label={`${item.label || `Item ${i + 1}`}: mark as alcohol`}
+							onclick={() => toggleSplitAlcohol(item.id)}
+						>🍺</button>
+						<button
+							type="button"
+							class="item-remove-btn"
+							onclick={() => removeSplitItem(item.id)}
+							disabled={splitItems.length <= 1}
+							aria-label={`Remove ${item.label || `item ${i + 1}`}`}
+						><span aria-hidden="true">×</span></button>
+					</div>
+					{#if splitPeople.length > 0}
+						<div class="assignment-chips" role="group" aria-label={`Who had ${item.label || `item ${i + 1}`}?`}>
+							{#each splitPeople as person (person.id)}
+								{@const assigned = isPersonAssigned(item.id, person.id)}
+								<button
+									type="button"
+									class="assign-chip"
+									class:assigned
+									onclick={() => toggleAssignment(item.id, person.id)}
+									aria-pressed={assigned}
+									aria-label={`${assigned ? 'Remove' : 'Add'} ${person.name}`}
+								>{person.name}</button>
+							{/each}
+						</div>
+					{/if}
+				</li>
+			{/each}
+		</ul>
+		<button type="button" class="add-item-btn" onclick={addSplitItem}>+ Add item</button>
+	</div>
+
+	<!-- 3. Tip percentage -->
+	<div class="split-section">
+		<span class="group-label" id="split-tip-label">Tip percentage</span>
+		<div class="segmented" role="radiogroup" aria-labelledby="split-tip-label" tabindex="-1" onkeydown={onSplitTipKeydown}>
+			{#each PRESETS as preset, i}
+				<button
+					type="button"
+					class="btn btn-toggle"
+					class:selected={splitTipMode === 'preset' && splitPresetPercent === preset}
+					role="radio"
+					aria-checked={splitTipMode === 'preset' && splitPresetPercent === preset}
+					tabindex={splitTipSelectedIndex === i ? 0 : -1}
+					onclick={() => { splitTipMode = 'preset'; splitPresetPercent = preset; }}
+				>{preset}%</button>
+			{/each}
+			<button
+				type="button"
+				class="btn btn-toggle"
+				class:selected={splitTipMode === 'other'}
+				role="radio"
+				aria-checked={splitTipMode === 'other'}
+				tabindex={splitTipSelectedIndex === PRESETS.length ? 0 : -1}
+				onclick={() => { splitTipMode = 'other'; }}
+			>Other</button>
+		</div>
+		{#if splitTipMode === 'other'}
+			<div class="other-wrap">
+				<label for="split-other-percent" class="sr-only">Custom tip percentage</label>
+				<div class="input-suffix-wrap">
+					<input
+						id="split-other-percent"
+						type="number"
+						inputmode="decimal"
+						min="0"
+						max="100"
+						step="0.01"
+						placeholder="0"
+						bind:value={splitOtherPercent}
+					/>
+					<span class="input-suffix" aria-hidden="true">%</span>
+				</div>
+			</div>
+		{/if}
+	</div>
+
+	<!-- 4. State / tax -->
+	<div class="split-section">
+		<label for="split-state">Your state</label>
+		<select id="split-state" bind:value={splitSelectedState}>
+			<option value="">Select your state</option>
+			{#each STATE_OPTIONS as opt}
+				<option value={opt.code}>{opt.name}</option>
+			{/each}
+		</select>
+		<p class="field-hint">
+			{splitTaxHint}
+			{#if splitTaxLookupUrl}
+				<a href={splitTaxLookupUrl} target="_blank" rel="noopener noreferrer">Look up your city →</a>
+			{/if}
+		</p>
+		{#if splitHasAlcohol}
+			<div style="margin-top: var(--space-sm);">
+				<label for="split-alcohol-tax" class="group-label">
+					Alcohol tax rate <span class="optional-label">(if different)</span>
+				</label>
+				<div class="input-suffix-wrap tax-rate-wrap" style="margin-top: var(--space-xs);">
+					<input
+						id="split-alcohol-tax"
+						type="number"
+						inputmode="decimal"
+						min="0"
+						max="30"
+						step="0.01"
+						placeholder={splitTaxRateStr || '0.00'}
+						bind:value={splitAlcoholTaxRateStr}
+					/>
+					<span class="input-suffix" aria-hidden="true">%</span>
+				</div>
+				<p class="field-hint">Leave blank to use the same rate. Some states apply a separate liquor-by-the-drink tax.</p>
+			</div>
+		{/if}
+	</div>
+
+	<!-- 5. Results -->
+	{#if splitPeople.length > 0}
+		<section class="split-results" aria-live="polite" aria-label="Split results">
+			{#if splitHasResults}
+				{#each splitResults as r (r.person.id)}
+					<div class="split-result-row">
+						<span class="split-result-name">{r.person.name}</span>
+						<span class="split-result-amount">{money(r.total)}</span>
+					</div>
+				{/each}
+				<div class="split-result-total-row">
+					<span class="split-result-name">Total</span>
+					<span class="split-result-amount">{money(splitGrandTotal)}</span>
+				</div>
+			{:else}
+				<p class="result-empty">Enter items above to see each person's share.</p>
+			{/if}
+		</section>
+	{:else}
+		<p class="split-start-hint">Add people above to get started.</p>
+	{/if}
+
+</section>
 {/if}
 
 <div class="signpost-footer" role="note">
@@ -1210,5 +1557,189 @@
 		max-width: 38ch;
 		margin: 0 auto;
 		line-height: 1.6;
+	}
+
+	/* Split mode */
+	.split-mode {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-lg);
+	}
+
+	.split-section {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-sm);
+	}
+
+	.add-person-row {
+		display: flex;
+		gap: var(--space-sm);
+	}
+
+	.person-name-input {
+		flex: 1;
+	}
+
+	.add-person-btn {
+		flex: 0 0 auto;
+		min-height: 48px;
+		padding: 0 var(--space-md);
+		background: none;
+		border: 2px solid var(--border);
+		border-radius: var(--radius);
+		font-family: var(--font);
+		font-size: 0.9375rem;
+		font-weight: 600;
+		color: var(--terracotta);
+		cursor: pointer;
+		white-space: nowrap;
+		transition: border-color 0.15s;
+	}
+
+	.add-person-btn:hover:not(:disabled) { border-color: var(--terracotta); }
+	.add-person-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+	.add-person-btn:focus-visible {
+		outline: 3px solid var(--terracotta);
+		outline-offset: 2px;
+	}
+
+	.people-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-xs);
+	}
+
+	.person-chip {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.25rem 0.5rem 0.25rem 0.75rem;
+		background: var(--surface);
+		border: 2px solid var(--border);
+		border-radius: 999px;
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--dark);
+	}
+
+	.chip-remove {
+		background: none;
+		border: none;
+		cursor: pointer;
+		color: var(--muted);
+		font-size: 1rem;
+		line-height: 1;
+		padding: 0.125rem;
+		border-radius: 50%;
+		min-width: 20px;
+		min-height: 20px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		transition: color 0.15s;
+	}
+
+	.chip-remove:hover { color: var(--terracotta); }
+	.chip-remove:focus-visible { outline: 2px solid var(--terracotta); border-radius: 50%; }
+
+	.split-item-row {
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-xs);
+		padding-bottom: var(--space-sm);
+		border-bottom: 1px solid var(--border);
+	}
+
+	.split-item-row:last-child {
+		border-bottom: none;
+		padding-bottom: 0;
+	}
+
+	.assignment-chips {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.375rem;
+		padding-left: 2px;
+	}
+
+	.assign-chip {
+		padding: 0.25rem 0.625rem;
+		border: 2px solid var(--border);
+		border-radius: 999px;
+		background: transparent;
+		color: var(--muted);
+		font-family: var(--font);
+		font-size: 0.8125rem;
+		font-weight: 600;
+		cursor: pointer;
+		min-height: 32px;
+		transition: border-color 0.15s, background 0.15s, color 0.15s;
+	}
+
+	.assign-chip.assigned {
+		border-color: var(--terracotta);
+		background: var(--terracotta);
+		color: white;
+	}
+
+	.assign-chip:hover:not(.assigned) {
+		border-color: var(--terracotta);
+		color: var(--terracotta);
+	}
+
+	.assign-chip:focus-visible {
+		outline: 3px solid var(--terracotta);
+		outline-offset: 2px;
+	}
+
+	.split-results {
+		background: var(--surface);
+		border-radius: var(--radius);
+		padding: var(--space-md);
+		display: flex;
+		flex-direction: column;
+		gap: var(--space-xs);
+	}
+
+	.split-result-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: var(--space-sm);
+	}
+
+	.split-result-total-row {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+		gap: var(--space-sm);
+		padding-top: var(--space-xs);
+		border-top: 1px solid var(--border);
+		margin-top: var(--space-xs);
+	}
+
+	.split-result-name {
+		font-size: 0.9375rem;
+		font-weight: 600;
+		color: var(--dark);
+	}
+
+	.split-result-amount {
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: var(--dark);
+		white-space: nowrap;
+	}
+
+	.split-result-total-row .split-result-amount {
+		font-size: 1.25rem;
+	}
+
+	.split-start-hint {
+		font-size: 0.9375rem;
+		color: var(--muted);
+		text-align: center;
+		padding: var(--space-lg) 0;
 	}
 </style>
