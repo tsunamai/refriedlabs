@@ -36,10 +36,7 @@
 
 	const hasBill = $derived(bill > 0);
 
-	// Bill-amount label reflects what the entered amount represents (toggle copy).
-	const billLabel = $derived(
-		baseMode === 'pretax' ? 'Bill amount (pre-tax subtotal)' : 'Bill amount (post-tax total)'
-	);
+	const billLabel = $derived('Bill amount');
 
 	const baseNote = $derived(
 		baseMode === 'pretax'
@@ -307,7 +304,7 @@
 	<title>Tip Calculator | refriedlabs</title>
 	<meta
 		name="description"
-		content="Split the check and see the actual math. Plus what your tip means for the person serving you, depending on the state you're in."
+		content="Split the bill and see the actual math. Plus what your tip means for the person serving you, depending on the state you're in."
 	/>
 </svelte:head>
 
@@ -317,7 +314,7 @@
 
 <h1>Tip Calculator</h1>
 <p class="tool-description">
-	Split the check and see the actual math. Plus what your tip means for the person serving you,
+	Split the bill and see the actual math. Plus what your tip means for the person serving you,
 	depending on the state you're in.
 </p>
 
@@ -333,7 +330,7 @@
 		class="mode-btn"
 		class:active={mode === 'split'}
 		onclick={() => (mode = 'split')}
-	>Split the check</button>
+	>Split the bill</button>
 </div>
 
 <hr class="divider" />
@@ -388,6 +385,8 @@
 			</button>
 		</div>
 
+		<p class="tip-norm-hint">18–20% is standard at sit-down restaurants.</p>
+
 		{#if tipMode === 'other'}
 			<div class="other-wrap">
 				<label for="other-percent" class="sr-only">Custom tip percentage</label>
@@ -437,33 +436,7 @@
 		</div>
 	</div>
 
-	<!-- 4. Result block -->
-	<section class="result" aria-live="polite" aria-label="Tip result">
-		{#if hasBill}
-			<div class="result-row">
-				<span class="result-label">Tip amount</span>
-				<span class="result-value">{money(result.tipAmount)}</span>
-			</div>
-			<div class="result-row">
-				<span class="result-label">Total</span>
-				<span class="result-value result-total">{money(result.total)}</span>
-			</div>
-			{#if partySize > 1 && result.perPerson !== null}
-				<div class="result-row result-per-person">
-					<span class="result-label">Tip per person</span>
-					<span class="result-value">{money(result.tipPerPerson!)} each</span>
-				</div>
-				<div class="result-row result-per-person">
-					<span class="result-label">Total per person</span>
-					<span class="result-value">{money(result.perPerson)} each (approximately)</span>
-				</div>
-			{/if}
-		{:else}
-			<p class="result-empty">Enter a bill amount to see the tip and total.</p>
-		{/if}
-	</section>
-
-	<!-- 5. State selector -->
+	<!-- 4. State — before result so wage context informs the tip choice -->
 	<div class="field">
 		<label for="state">Your state</label>
 		<select id="state" bind:value={selectedState}>
@@ -472,14 +445,13 @@
 				<option value={opt.code}>{opt.name}</option>
 			{/each}
 		</select>
-		<p class="field-hint">States where servers earn full minimum wage: AK, CA, DC, MI, MN, MT, NV, OR, WA.</p>
 	</div>
 
-	<!-- State-aware wage note. Slot reserved from first paint to avoid layout shift. -->
+	<!-- State-aware wage note -->
 	<div class="wage-slot">
 		{#if !stateChosen}
 			<p class="wage-prompt">
-				Select your state to see wage context for the person serving you.
+				Select your state to see how tips affect the person serving you.
 			</p>
 		{:else}
 			<div class="signpost-box" role="note">
@@ -509,6 +481,32 @@
 			</p>
 		{/if}
 	</div>
+
+	<!-- 5. Result block -->
+	<section class="result" aria-live="polite" aria-label="Tip result">
+		{#if hasBill}
+			<div class="result-row">
+				<span class="result-label">Tip amount</span>
+				<span class="result-value">{money(result.tipAmount)}</span>
+			</div>
+			<div class="result-row">
+				<span class="result-label">Total</span>
+				<span class="result-value result-total">{money(result.total)}</span>
+			</div>
+			{#if partySize > 1 && result.perPerson !== null}
+				<div class="result-row result-per-person">
+					<span class="result-label">Tip per person</span>
+					<span class="result-value">{money(result.tipPerPerson!)} each</span>
+				</div>
+				<div class="result-row result-per-person">
+					<span class="result-label">Total per person</span>
+					<span class="result-value">{money(result.perPerson)} each (approximately)</span>
+				</div>
+			{/if}
+		{:else}
+			<p class="result-empty">Enter a bill amount to see the tip and total.</p>
+		{/if}
+	</section>
 
 	<!-- 6. Pre-tax / post-tax toggle (advanced — collapsed by default) -->
 	<details class="tip-base-details">
@@ -738,7 +736,7 @@
 </div>
 
 {:else}
-<!-- Split the check mode -->
+<!-- Split the bill mode -->
 <section class="split-mode">
 
 	<!-- 1. Who's splitting? -->
@@ -1015,6 +1013,12 @@
 
 	.input-suffix-wrap input {
 		padding-right: 2rem;
+	}
+
+	.tip-norm-hint {
+		font-size: 0.8125rem;
+		color: var(--muted);
+		margin-top: var(--space-xs);
 	}
 
 	.other-wrap {
