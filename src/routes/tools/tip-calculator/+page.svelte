@@ -1536,29 +1536,6 @@
 		color: var(--terracotta);
 	}
 
-	/* Split mode placeholder */
-	.split-placeholder {
-		padding: var(--space-lg) var(--space-md);
-		border: 2px dashed var(--border);
-		border-radius: var(--radius);
-		text-align: center;
-	}
-
-	.split-placeholder-headline {
-		font-weight: 700;
-		font-size: 1.125rem;
-		color: var(--dark);
-		margin-bottom: var(--space-sm);
-	}
-
-	.split-placeholder-body {
-		font-size: 0.9375rem;
-		color: var(--muted);
-		max-width: 38ch;
-		margin: 0 auto;
-		line-height: 1.6;
-	}
-
 	/* Split mode */
 	.split-mode {
 		display: flex;
