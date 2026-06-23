@@ -449,11 +449,7 @@
 
 	<!-- State-aware wage note -->
 	<div class="wage-slot">
-		{#if !stateChosen}
-			<p class="wage-prompt">
-				Select your state to see how tips affect the person serving you.
-			</p>
-		{:else}
+		{#if stateChosen}
 			<div class="signpost-box" role="note">
 				{#if oneFairWage}
 					<p>
@@ -503,8 +499,6 @@
 					<span class="result-value">{money(result.perPerson)} each (approximately)</span>
 				</div>
 			{/if}
-		{:else}
-			<p class="result-empty">Enter a bill amount to see the tip and total.</p>
 		{/if}
 	</section>
 
