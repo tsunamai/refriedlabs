@@ -111,7 +111,7 @@
 
 <style>
 	.calc-wrapper {
-		margin-top: var(--space-lg);
+		margin-top: var(--space-sm);
 	}
 
 	.calc-toggle {
@@ -120,13 +120,24 @@
 		cursor: pointer;
 		font-family: var(--font);
 		font-size: 0.875rem;
+		font-weight: 600;
 		color: var(--muted);
-		text-decoration: underline;
-		text-underline-offset: 3px;
 		padding: 0;
 		min-height: 44px;
 		display: flex;
 		align-items: center;
+		gap: 0.25rem;
+	}
+
+	.calc-toggle::before {
+		content: '▸';
+		font-size: 0.75rem;
+		display: inline-block;
+		transition: transform 0.15s;
+	}
+
+	.calc-toggle[aria-expanded="true"]::before {
+		transform: rotate(90deg);
 	}
 
 	.calc-toggle:hover { color: var(--terracotta); }

@@ -475,8 +475,8 @@
 	</div>
 
 	<!-- 5. Result block -->
-	<section class="result" aria-live="polite" aria-label="Tip result">
-		{#if hasBill}
+	{#if hasBill}
+		<section class="result" aria-live="polite" aria-label="Tip result">
 			<div class="result-row">
 				<span class="result-label">Tip amount</span>
 				<span class="result-value">{money(result.tipAmount)}</span>
@@ -495,8 +495,8 @@
 					<span class="result-value">{money(result.perPerson)} each (approximately)</span>
 				</div>
 			{/if}
-		{/if}
-	</section>
+		</section>
+	{/if}
 
 	<!-- 6. Pre-tax / post-tax toggle (advanced — collapsed by default) -->
 	<details class="tip-base-details">
@@ -958,11 +958,7 @@
 		color: var(--terracotta);
 	}
 
-	.tool-description {
-		margin-top: var(--space-sm);
-		color: var(--muted);
-		max-width: 52ch;
-	}
+
 
 	/* Dollar prefix on inputs (matches EMG-1) */
 	.input-prefix-wrap {
@@ -1262,13 +1258,24 @@
 		cursor: pointer;
 		font-family: var(--font);
 		font-size: 0.875rem;
+		font-weight: 600;
 		color: var(--muted);
-		text-decoration: underline;
-		text-underline-offset: 3px;
 		padding: 0;
 		min-height: 44px;
 		display: flex;
 		align-items: center;
+		gap: 0.25rem;
+	}
+
+	.section-toggle::before {
+		content: '▸';
+		font-size: 0.75rem;
+		display: inline-block;
+		transition: transform 0.15s;
+	}
+
+	.section-toggle[aria-expanded="true"]::before {
+		transform: rotate(90deg);
 	}
 
 	.section-toggle:hover { color: var(--terracotta); }
@@ -1280,7 +1287,7 @@
 	}
 
 	.itemized-wrapper {
-		margin-top: var(--space-md);
+		margin-top: var(--space-sm);
 	}
 
 	.itemized-section {
@@ -1487,7 +1494,7 @@
 
 	/* Tip base collapsible */
 	.tip-base-details {
-		margin-top: var(--space-md);
+		margin-top: var(--space-sm);
 	}
 
 	.tip-base-summary {

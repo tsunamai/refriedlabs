@@ -77,9 +77,5 @@
 		color: var(--ink);
 	}
 
-	.tool-desc {
-		font-size: 0.9375rem;
-		color: var(--muted);
-		line-height: 1.5;
-	}
+
 </style>
