@@ -1181,12 +1181,6 @@
 		margin-bottom: var(--space-md);
 	}
 
-	.wage-prompt {
-		font-size: 0.9375rem;
-		color: var(--muted);
-		line-height: 1.6;
-	}
-
 	/* Signpost box — informational, never an alert color */
 	.signpost-box {
 		background: var(--cream);
