@@ -313,10 +313,6 @@
 </nav>
 
 <h1>Tip Calculator</h1>
-<p class="tool-description">
-	Split the bill and see the actual math. Plus what your tip means for the person serving you,
-	depending on the state you're in.
-</p>
 
 <div class="mode-switch" role="group" aria-label="Calculator mode">
 	<button
