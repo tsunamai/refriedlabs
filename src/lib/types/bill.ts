@@ -65,3 +65,27 @@ export interface PersonSplitResult {
 	tipAmount: number;
 	total: number;
 }
+
+// Tipping etiquette guide ("How to tip in the US"). Data-only; no Svelte imports.
+// How strongly a tip is expected — the thing visitors actually don't know.
+export type TipExpectation =
+	| 'expected' // the norm; not tipping reads as rude
+	| 'optional' // appreciated, but fine to skip
+	| 'extraOnly' // usually nothing, unless they go out of their way
+	| 'notCustomary' // you genuinely don't tip here
+	| 'checkFirst'; // a charge may ALREADY be on the bill — look before you tip
+
+export interface TipSituation {
+	id: string;
+	title: string;
+	expectation: TipExpectation;
+	amount: string; // short answer, e.g. "18–20% of the bill"
+	suggestedPercent: number | null; // when %-based; null otherwise
+	note: string; // plain-language context
+}
+
+export interface TipGuideCategory {
+	id: string;
+	title: string;
+	situations: TipSituation[];
+}

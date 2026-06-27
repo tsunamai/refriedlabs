@@ -12,6 +12,10 @@
 	--border:     #E0D5C5;
 	--surface:    #F2EDE4;
 
+	/* Success / "tip is extra" — warm-compatible green (≈5.6:1 on white, AA) */
+	--ok:         #2E6B3E;
+	--ok-surface: #EAF3EC;
+
 	/* Token aliases — tool pages use these names */
 	--terracotta: var(--chili);
 	--copper:     var(--chili-dark);

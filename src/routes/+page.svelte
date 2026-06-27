@@ -11,6 +11,12 @@
 
 <ul class="tool-list">
 	<li class="tool-card">
+		<a href="/tools/how-to-tip" class="tool-link">
+			<span class="tool-name">How to Tip in the US</span>
+			<span class="tool-desc">A free guide for visitors — who to tip, how much, and why.</span>
+		</a>
+	</li>
+	<li class="tool-card">
 		<a href="/tools/tip-calculator" class="tool-link">
 			<span class="tool-name">Tip Calculator</span>
 		</a>
@@ -75,6 +81,11 @@
 		font-weight: 700;
 		font-size: 1rem;
 		color: var(--ink);
+	}
+
+	.tool-desc {
+		font-size: 0.875rem;
+		color: var(--muted);
 	}
 
 
