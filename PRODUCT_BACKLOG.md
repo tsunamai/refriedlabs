@@ -359,11 +359,13 @@ Petty. Useful. Very refriedlabs.
 
 ---
 
-**CTX-4b: "Where Does It Actually Go?" — spending/savings estimator [P2 — idea]**
+**CTX-4b: "What Am I Actually Saving?" — savings-rate estimator [SHIPPED]**
 
-Companion to "When Can I Retire?" That tool anchors on take-home pay and lets the user *guess* their savings rate with a slider, precisely because most people don't know their real save/spend split — "everything gets eaten up straight out of the bank account." This tool would close that gap: a low-effort estimator that helps someone arrive at a realistic savings number (rough buckets, common-expense prompts, or paycheck-minus-bills) without demanding a full budget audit. Output feeds straight back into the FI calculator's slider.
+Companion to "When Can I Retire?" — `/tools/what-am-i-saving`. That tool anchors on take-home pay and lets the user *guess* their savings rate with a slider, precisely because most people don't know their real save/spend split — "everything gets eaten up straight out of the bank account." This closes the gap.
 
-**Design constraint:** must stay fillable in well under a minute. The moment it feels like budgeting homework, people bail. Stimulate the good behavior (awareness) without the investigative tax. Keep it stateless, no PII.
+**Approach shipped:** rather than estimating *spending* (which people can't recall), it asks for what they save **on purpose** — 401k % + auto-transfer + other regular saving — and reports that as a realistic floor: `total / take-home`. A "see when you could retire at N%" button hands the rate straight to the FI tool's slider via URL params (`?takehome&rate&period`). Stateless, no PII, fillable in under a minute. Math + tests: `src/lib/calculators/savings.ts` / `savings.test.ts`.
+
+**Future (not built):** the "big-buckets subtract" and "what's left over" estimation modes were considered and set aside in favor of the lowest-effort "what you save on purpose" framing.
 
 ---
 
@@ -397,6 +399,7 @@ Companion to "When Can I Retire?" That tool anchors on take-home pay and lets th
 - **Split the tax** — given your state + income, show what percentage of each dollar worked goes to which tax. Companion to FastFuel's "what keeps you full for the least money."
 - **Resort fee decoder** — given a hotel's nightly rate + resort fee, show the actual nightly cost and what "free" amenities you'd have to use to break even.
 - **Subscription creep calculator** — list your subscriptions, see the annual total, see what you'd need to cancel to recoup a specific amount.
+- **Leakage / "where the money really leaks" [idea]** — born from the FI tool: a 50% savings rate feels enormous and like deprivation, while a 3% card fee or a $15 subscription disappears because it's small, constant, and invisible. We flinch at the lump and shrug at the leak. The tool would make the leak as *legible* as "When Can I Retire?" makes the lump. Two angles, possibly the same tool: (1) the junk-fee economy — surcharges, card fees, service fees, resort fees, the small recurring stuff (overlaps the **Subscription creep calculator** and **Resort fee decoder** above; this is the behavioral framing that ties them together); (2) the proportion-blindness flip — people obsess over a $6 subscription while a few % on the *house or the car* (rate, term, trim level, "just $X more a month") dwarfs a lifetime of subscriptions and goes largely unexamined. The honest punchline: the energy spent policing small visible fees is often misallocated from the few big decisions that actually move the number. Keep it non-preachy — show the relative sizes, let the contrast land on its own (same register as the FI tool's "the salary cancels out").
 
 ---
 

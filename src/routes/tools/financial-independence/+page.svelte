@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { onMount } from 'svelte';
 	import { calculateFIFromTakeHome, savingsRateTable, DEFAULT_TABLE_RATES } from '$lib/calculators/fi';
 
 	// --- Inputs ---
@@ -7,6 +8,21 @@
 	let takeHomeStr = $state('');
 	let savingsRate = $state(20); // slider value (a number — never call string methods on it)
 	let period = $state<'month' | 'year'>('month');
+
+	// Pre-fill from the "What Am I Actually Saving?" handoff (client-side only —
+	// query params aren't present at prerender time).
+	onMount(() => {
+		const p = new URLSearchParams(window.location.search);
+		const th = p.get('takehome');
+		if (th && parseFloat(th) > 0) takeHomeStr = th;
+		const rate = p.get('rate');
+		if (rate !== null) {
+			const n = parseFloat(rate);
+			if (Number.isFinite(n)) savingsRate = Math.min(Math.max(n, 0), 70);
+		}
+		const per = p.get('period');
+		if (per === 'month' || per === 'year') period = per;
+	});
 
 	// Advanced assumptions — sensible defaults, tweakable.
 	let returnStr = $state('5');
@@ -92,9 +108,11 @@
 <h1>When Can I Retire?</h1>
 
 <p class="intro">
-	You don't need to track your spending to get a feel for this. Tell it what you take home, then
-	drag the slider to play with how much you'd save. Saving more does two things at once: it grows
-	the pile faster <em>and</em> shrinks the pile you need.
+	Here's a quietly surprising idea: how soon you could stop working leans far more on the
+	<em>share</em> of your pay you keep than on how much you earn. This is just a small way to feel
+	that for yourself — no spending spreadsheet required. Tell it what you take home, then drag the
+	slider. Saving more does two things at once: it grows the pile faster <em>and</em> shrinks the
+	pile you need.
 </p>
 
 <hr class="divider" />
@@ -261,11 +279,12 @@
 
 <!-- The bridge: savings rate -> years, at the current assumptions -->
 <section class="fi-table-section" aria-label="Savings rate to years table">
-	<h2 class="table-heading">The whole picture</h2>
+	<h2 class="table-heading">The part that surprises people</h2>
 	<p class="table-note">
-		Years to financial independence at each savings rate, starting from zero ({realReturn}% real
-		return, {withdrawal}% withdrawal). The striking part: the dollars don't matter — only the rate
-		does. Your slider is highlighted.
+		Starting from nothing, here's how long it takes at each savings rate ({realReturn}% real
+		return, {withdrawal}% withdrawal). This is the heart of it: the salary cancels out. Someone
+		saving half of a small paycheck and someone saving half of a big one reach freedom in the same
+		number of years — the dollars don't decide it, the rate does. Your slider's rate is highlighted.
 	</p>
 	<table class="fi-table">
 		<thead>

@@ -22,6 +22,12 @@
 		</a>
 	</li>
 	<li class="tool-card">
+		<a href="/tools/what-am-i-saving" class="tool-link">
+			<span class="tool-name">What Am I Actually Saving?</span>
+			<span class="tool-desc">No budget required — turn what you save on purpose into a real savings rate.</span>
+		</a>
+	</li>
+	<li class="tool-card">
 		<a href="/tools/financial-independence" class="tool-link">
 			<span class="tool-name">When Can I Retire?</span>
 			<span class="tool-desc">Your savings rate, your number, and the years to financial independence.</span>
