@@ -21,6 +21,12 @@
 			<span class="tool-name">Tip Calculator</span>
 		</a>
 	</li>
+	<li class="tool-card">
+		<a href="/tools/financial-independence" class="tool-link">
+			<span class="tool-name">When Can I Retire?</span>
+			<span class="tool-desc">Your savings rate, your number, and the years to financial independence.</span>
+		</a>
+	</li>
 </ul>
 
 <style>
