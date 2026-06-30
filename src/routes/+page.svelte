@@ -13,24 +13,25 @@
 	<li class="tool-card">
 		<a href="/tools/how-to-tip" class="tool-link">
 			<span class="tool-name">How to Tip in the US</span>
-			<span class="tool-desc">A free guide for visitors — who to tip, how much, and why.</span>
+			<span class="tool-desc">Who to tip, how much, and why.</span>
 		</a>
 	</li>
 	<li class="tool-card">
 		<a href="/tools/tip-calculator" class="tool-link">
 			<span class="tool-name">Tip Calculator</span>
+			<span class="tool-desc">Split a bill and tip, fast.</span>
 		</a>
 	</li>
 	<li class="tool-card">
 		<a href="/tools/what-am-i-saving" class="tool-link">
 			<span class="tool-name">What Am I Actually Saving?</span>
-			<span class="tool-desc">No budget required — turn what you save on purpose into a real savings rate.</span>
+			<span class="tool-desc">Turn intentional savings into a real rate.</span>
 		</a>
 	</li>
 	<li class="tool-card">
 		<a href="/tools/financial-independence" class="tool-link">
 			<span class="tool-name">When Can I Retire?</span>
-			<span class="tool-desc">Your savings rate, your number, and the years to financial independence.</span>
+			<span class="tool-desc">Your number and the years to get there.</span>
 		</a>
 	</li>
 </ul>
@@ -58,9 +59,15 @@
 	.tool-list {
 		list-style: none;
 		padding: 0;
-		display: flex;
-		flex-direction: column;
+		display: grid;
+		grid-template-columns: 1fr;
 		gap: var(--space-md);
+	}
+
+	@media (min-width: 32rem) {
+		.tool-list {
+			grid-template-columns: repeat(2, 1fr);
+		}
 	}
 
 	.tool-card {
