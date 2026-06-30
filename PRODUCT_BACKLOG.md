@@ -279,6 +279,119 @@ Petty. Useful. Very refriedlabs.
 
 ---
 
+## CONTEXT & PERCENTILE TRACK
+
+**The pattern:** you have a number. You want to know what it means. You Google it, or you ask Claude, and you wait — and if you didn't prompt it right, you never get the age-adjusted answer, the local benchmark, or the five related facts that actually make the number make sense. These tools give you all of it instantly from one input.
+
+**Why it beats AI for this:** no prompt engineering, no waiting, no hallucinated data. The answer is always the same shape. And it aggregates — one form, multiple outputs.
+
+---
+
+**CTX-1: Net Worth Percentile [P1]**
+
+"Where do I stand?"
+
+**Inputs:** net worth (assets minus debts), age bracket.
+
+**Outputs (all at once):**
+- Overall U.S. net worth percentile
+- Percentile for your age bracket
+- Median and mean net worth for your age group
+- Distance to next milestone (next decile / top 10% / top 1%)
+- Brief context: what drives the gap at this level (real estate, equities, etc.)
+
+**Source:** Federal Reserve Survey of Consumer Finances (public, triennial). Most recent: 2022; 2025 expected.
+
+**Why it beats a chatbot:** ChatGPT gives a vague answer or hallucinates the SCF numbers unless you know to cite the exact survey. This tool pins to the actual data and always shows the age breakdown unprompted.
+
+---
+
+**CTX-2: Salary Percentile [P1]**
+
+"Is my salary good?"
+
+**Inputs:** gross annual salary, state (optional), age bracket (optional).
+
+**Outputs:**
+- U.S. national percentile
+- State-level percentile (if state provided)
+- Median for your age bracket
+- Median for your state
+- Purchasing power context: same salary in a high-cost vs. low-cost state
+
+**Source:** BLS Occupational Employment and Wage Statistics (public, annual).
+
+---
+
+**CTX-3: Effective Tax Rate Breakdown [P1]**
+
+"What do I actually pay in taxes?"
+
+**Inputs:** gross annual income, filing status, state.
+
+**Outputs:**
+- Federal effective rate (not marginal)
+- State effective rate
+- Combined effective rate
+- Marginal federal bracket
+- Take-home estimate (annual + monthly)
+- One-liner on what the next $1,000 of income costs in tax
+
+**Why it beats a chatbot:** most people think they're in the 22% bracket and pay 22%. This shows the actual blended rate. AI gets this right only if you ask perfectly.
+
+---
+
+**CTX-4: Retirement Readiness Check [P2]**
+
+"Am I on track?"
+
+**Inputs:** age, current retirement savings, annual income, planned retirement age.
+
+**Outputs:**
+- Fidelity savings benchmark for your age (1x by 30, 3x by 40, etc.)
+- Where you stand vs. the benchmark
+- What monthly savings rate gets you to 1x by the next milestone
+- Simple 4% rule output: "at current trajectory, you'd have $X at 65, supporting $Y/year"
+
+**Not financial advice.** A benchmark tool, not a plan.
+
+> **Note:** The "When Can I Retire?" tool (`/tools/financial-independence`) shipped first and covers the simple 4% rule output (your number = annual spending × 25) plus a savings-rate → years table. CTX-4 remains distinct: it adds Fidelity age benchmarks and a current-trajectory projection. Build CTX-4 on top of, not duplicating, the shared FI math in `src/lib/calculators/fi.ts`.
+
+---
+
+**CTX-4b: "Where Does It Actually Go?" — spending/savings estimator [P2 — idea]**
+
+Companion to "When Can I Retire?" That tool anchors on take-home pay and lets the user *guess* their savings rate with a slider, precisely because most people don't know their real save/spend split — "everything gets eaten up straight out of the bank account." This tool would close that gap: a low-effort estimator that helps someone arrive at a realistic savings number (rough buckets, common-expense prompts, or paycheck-minus-bills) without demanding a full budget audit. Output feeds straight back into the FI calculator's slider.
+
+**Design constraint:** must stay fillable in well under a minute. The moment it feels like budgeting homework, people bail. Stimulate the good behavior (awareness) without the investigative tax. Keep it stateless, no PII.
+
+---
+
+**CTX-5: "Is My Rent Too High?" [P2]**
+
+**Inputs:** monthly gross income, monthly rent, city.
+
+**Outputs:**
+- Your rent-to-income ratio
+- The 30% rule benchmark (and why it's outdated in high-cost cities)
+- Median rent for a 1BR in your city (Census ACS data)
+- Percentile: "you're paying more than X% of renters in [city]"
+
+---
+
+**CTX-6: Credit Score Context [P2]**
+
+**Inputs:** credit score (FICO or VantageScore).
+
+**Outputs:**
+- Tier label (Poor / Fair / Good / Very Good / Exceptional) with your score's position within it
+- Typical mortgage rate you'd qualify for at this score
+- Typical auto loan rate
+- Typical credit card APR
+- Distance to next tier + what changes it (utilization, payment history weight, etc.)
+
+---
+
 ## BACKLOG INTAKE (rough ideas, not groomed)
 
 - **Split the tax** — given your state + income, show what percentage of each dollar worked goes to which tax. Companion to FastFuel's "what keeps you full for the least money."
